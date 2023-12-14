@@ -3,7 +3,7 @@ const jwt = require("jsonwebtoken");
 
 const prisma = new PrismaClient();
 
-exports.getPatients = async (req, res) => {
+exports.signup = async (req, res) => {
     const data = {
       name: req.body.name,
       email: req.body.email,
