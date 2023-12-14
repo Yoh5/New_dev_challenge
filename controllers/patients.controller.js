@@ -3,6 +3,25 @@ const jwt = require("jsonwebtoken");
 
 const prisma = new PrismaClient();
 
+exports.getPatientsWithFactures = async (req, res) => {
+  try {
+    const patients = await prisma.patient.findMany({
+      include: {
+        facture: true,
+      },
+      select: {
+        name: true,
+        facture: true,
+      },
+    });
+
+    res.json(patients);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'An error occurred while fetching patients and their factures.' });
+  }
+};
+
 exports.signup = async (req, res) => {
     const data = {
       name: req.body.name,
@@ -11,7 +30,7 @@ exports.signup = async (req, res) => {
     };
   
     try {
-      const checking = await prisma.logInData.findUnique({
+      const checking = await prisma.Patient.findUnique({
         where: { email: req.body.email },
       });
   
@@ -20,18 +39,18 @@ exports.signup = async (req, res) => {
       } else {
         const hashedPassword = await bcrypt.hash(req.body.password, 10);
         data.password = hashedPassword;
-        const newdata = await prisma.logInData.create({ data });
-        res.status(201).json({ message: 'Utilisateur créé !', newdata });
+        const newdata = await prisma.Patient.create({ data });
+        res.status(201).json(newdata);
       }
     } catch (e) {
       console.error(e);
-      res.send('wrong inputs');
+      res.status(500).json({ error: 'An error occurred during signup.' });
     }
 };
 
 exports.login = async (req, res) => {
     try {
-      const check = await prisma.logInData.findUnique({
+      const check = await prisma.Patient.findUnique({
         where: { email: req.body.email },
       });
   
@@ -61,5 +80,45 @@ exports.login = async (req, res) => {
     } catch (e) {
       console.error(e);
       res.send('Something went wrong');
+    }
+  };
+
+  exports.deletePatient = async (req, res) => {
+    const { patientId } = req.params;
+  
+    try {
+      const deletedPatient = await prisma.patient.delete({
+        where: {
+          id: patientId,
+        },
+      });
+  
+      res.json(deletedPatient);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'An error occurred while deleting the patient.' });
+    }
+  };
+
+  exports.updatePatient = async (req, res) => {
+    const { patientId } = req.params;
+    const { name, email, password } = req.body;
+  
+    try {
+      const updatedPatient = await prisma.patient.update({
+        where: {
+          id: patientId,
+        },
+        data: {
+          name,
+          email,
+          password,
+        },
+      });
+  
+      res.json(updatedPatient);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'An error occurred while updating the patient.' });
     }
   };
