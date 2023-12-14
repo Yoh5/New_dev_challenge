@@ -1,1 +1,23 @@
-//comment
+datasource db {
+  provider = "mongodb"
+  url      = env("MONGO_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Patient {
+  id        String      @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  email     String   @unique
+  password  String
+  facture   facture[]
+}
+
+model facture {
+  id         String      @id @default(auto()) @map("_id") @db.ObjectId
+  patient    Patients    @relation(fields: [patientId], references: [id])
+  patientId  String
+  facture    String
+}
